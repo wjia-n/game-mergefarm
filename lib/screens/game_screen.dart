@@ -495,6 +495,7 @@ class _GameScreenState extends State<GameScreen>
             onPressed: () => Navigator.pop(context),
             child:
                 Text('Keep farming', style: Farm.body(15, theme: _t)),
+          ),
           FarmButton(
             theme: _t,
             label: 'End day 🌙',
