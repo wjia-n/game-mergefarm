@@ -1,23 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:wajiha_game_core/wajiha_game_core.dart';
-import 'game_screen.dart';
+import 'package:flutter/services.dart';
+import 'screens/splash_screen.dart';
+import 'services/audio_service.dart';
+import 'services/settings_service.dart';
 
-void main() => runApp(const MergeFarmApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  final settings = FarmSettings();
+  await settings.load();
+  final audio = FarmAudio();
+  audio.configure(
+    musicOn: settings.musicOn,
+    sfxOn: settings.sfxOn,
+    volume: settings.volume,
+  );
+  runApp(MergeFarmApp(settings: settings, audio: audio));
+}
 
-class MergeFarmApp extends StatelessWidget {
-  const MergeFarmApp({super.key});
+class MergeFarmApp extends StatefulWidget {
+  final FarmSettings settings;
+  final FarmAudio audio;
+  const MergeFarmApp(
+      {super.key, required this.settings, required this.audio});
+
+  @override
+  State<MergeFarmApp> createState() => _MergeFarmAppState();
+}
+
+class _MergeFarmAppState extends State<MergeFarmApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    widget.audio.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause (not stop) on interruption so music resumes exactly where it
+    // left off; the game engine's watchdog recovers any in-flight phase.
+    if (state == AppLifecycleState.paused) {
+      widget.audio.onAppPaused();
+    } else if (state == AppLifecycleState.resumed) {
+      widget.audio.onAppResumed();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GameShell(
-      variant: ShellVariant.playfulPop,
+    return MaterialApp(
       title: 'Merge Farm',
-      tagline: 'Merge crops, fill orders, grow your dream farm!',
-      emoji: '🌾',
-      slug: 'mergefarm',
-      howToPlay: '• Tap an empty plot to plant a 🌱 seed (10 coins)\n• Tap a crop, then tap a matching crop to merge up\n• Fill customer orders for big coin payouts\n• No timers, no fails — pure cozy farming zen',
-      playerOptions: const [1],
-      supportsBots: false,
-      gameBuilder: (ctx, players, cb) => MergeFarmScreen(players: players, callbacks: cb),
+      debugShowCheckedModeBanner: false,
+      home: SplashScreen(
+        audio: widget.audio,
+        settings: widget.settings,
+      ),
     );
   }
 }
