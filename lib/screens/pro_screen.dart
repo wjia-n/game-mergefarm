@@ -33,26 +33,10 @@ class _ProScreenState extends State<ProScreen> {
   @override
   void initState() {
     super.initState();
-    widget.store.proPurchased.addListener(_onPro);
     widget.store.lastThanks.addListener(_onThanks);
   }
 
-  void _onPro() {
-    if (widget.store.proPurchased.value && mounted) {
-      widget.settings.setPro(true);
-      widget.audio.win();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('PRO unlocked — enjoy everything, farmer!',
-              style: Farm.body(15, theme: _t)),
-          backgroundColor: _t.woodDeep,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      widget.store.proPurchased.value = false;
-    }
-  }
-
+  
   void _onThanks() {
     final msg = widget.store.lastThanks.value;
     if (msg == null || !mounted) return;
@@ -69,7 +53,6 @@ class _ProScreenState extends State<ProScreen> {
 
   @override
   void dispose() {
-    widget.store.proPurchased.removeListener(_onPro);
     widget.store.lastThanks.removeListener(_onThanks);
     super.dispose();
   }

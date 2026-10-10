@@ -66,7 +66,7 @@ class FarmSettings extends ChangeNotifier {
   String cropStyleId = 'classic';
   List<String> customTiers = List.of(CropStyles.defaultCustomTiers);
   Map<String, int> customColors = Map.of(_defaultCustomColors);
-  bool isPro = false;
+  bool isPro = true; // everything unlocked — no Pro version
   int ordersFilled = 0;
   int merges = 0;
   int coinsEarned = 0;
@@ -146,7 +146,7 @@ class FarmSettings extends ChangeNotifier {
         }
       } catch (_) {}
     }
-    isPro = p.getBool(_kIsPro) ?? false;
+    isPro = true; // everything unlocked
     ordersFilled = p.getInt(_kWins) ?? 0;
     merges = p.getInt(_kMerges) ?? 0;
     coinsEarned = p.getInt(_kEarned) ?? 0;
