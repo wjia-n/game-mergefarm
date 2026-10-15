@@ -97,17 +97,14 @@ class _ProScreenState extends State<ProScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          if (s.isPro)
-            WoodCard(
-              theme: t,
-              child: Center(
-                child: Text('✅ You are PRO — thank you for supporting the farm!',
-                    textAlign: TextAlign.center,
-                    style: Farm.title(16, theme: t)),
-              ),
-            )
-          else
-            _buyBox(t, store),
+          WoodCard(
+            theme: t,
+            child: Center(
+              child: Text('✅ Everything is unlocked — thank you for supporting the farm!',
+                  textAlign: TextAlign.center,
+                  style: Farm.title(16, theme: t)),
+            ),
+          ),
           const SizedBox(height: 14),
           WoodCard(
             theme: t,
@@ -176,42 +173,6 @@ class _ProScreenState extends State<ProScreen> {
                   textAlign: TextAlign.center,
                   style: Farm.body(13, theme: t)
                       .copyWith(fontWeight: FontWeight.w800))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buyBox(FarmThemeDef t, StoreService store) {
-    final pro = store.proProduct;
-    return WoodCard(
-      theme: t,
-      child: Column(
-        children: [
-          Text('Unlock PRO forever', style: Farm.title(18, theme: t)),
-          const SizedBox(height: 6),
-          if (!store.available)
-            Text('🛠️ Store unavailable on this device.',
-                style: Farm.muted(14, theme: t))
-          else if (pro == null)
-            Text(
-              '🛠️ PRO unlock appears here once the `mergefarmpro` product is created in Play Console.',
-              textAlign: TextAlign.center,
-              style: Farm.muted(14, theme: t),
-            )
-          else ...[
-            Text(pro.description, style: Farm.muted(13, theme: t)),
-            const SizedBox(height: 10),
-            FarmButton(
-              theme: t,
-              label: store.purchaseInProgress.value
-                  ? 'Working… ⏳'
-                  : 'Unlock PRO — ${pro.price} ⭐',
-              fontSize: 17,
-              onTap: store.purchaseInProgress.value
-                  ? null
-                  : () => store.buyPro(),
-            ),
-          ],
         ],
       ),
     );

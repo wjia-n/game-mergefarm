@@ -17,6 +17,9 @@ import 'package:audioplayers/audioplayers.dart';
 ///   resumes exactly where it left off instead of restarting or dying.
 /// - Every public method catches player errors; audio can never crash the app.
 class FarmAudio {
+  /// Per-game pitch character (mergefarm): 1.30x. Makes SFX unique.
+  static const double _pitchMul = 1.300;
+
   static const int _rate = 22050;
   final AudioPlayer _sfx = AudioPlayer();
   final AudioPlayer _music = AudioPlayer();
@@ -102,6 +105,8 @@ class FarmAudio {
 
   List<double> _tone(double freq, double secs,
       {double freqEnd = 0, double attack = 0.02, double harmonics = 0.25}) {
+    freq *= _pitchMul;
+    freqEnd *= _pitchMul;
     final n = (_rate * secs).round();
     final out = List<double>.filled(n, 0);
     for (int i = 0; i < n; i++) {
@@ -194,45 +199,39 @@ class FarmAudio {
       _cache.putIfAbsent(key, () => _wav(build()));
 
   Uint8List _menuBytes() => _clip('music_menu', () {
-        // Warm morning-farm guitar-ish pluck arpeggios, 16s loop.
-        final drone = _padChord([98.0, 146.83], 16.0); // G2/D3
-        final line = [
-          196.0, 246.94, 293.66, 392.0, // G B D G
-          329.63, 293.66, 246.94, 196.0, // E D B G
-          220.0, 261.63, 329.63, 440.0, // A C E A
-          392.0, 329.63, 293.66, 246.94, // G E D B
+        // A# 3 – 0 – 4 – 5 warm pad, 16s loop. Unique to mergefarm.
+        final seq = [
+          [311.12, 391.99, 466.16],
+          [233.08, 293.66, 349.23],
+          [349.23, 440.00, 523.25],
+          [391.99, 466.16, 587.32]
         ];
-        final n = (_rate * 16).round();
-        final out = List<double>.from(drone);
-        for (int k = 0; k < line.length; k++) {
-          final start = (n * k / line.length).round();
-          final tone = _tone(line[k], 0.55, harmonics: 0.35);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.32;
-          }
+        final out = <double>[];
+        for (final chord in seq) {
+          out.addAll(_padChord(chord, 4.0));
         }
         return out;
       });
 
+
   Uint8List _gameBytes() => _clip('music_game', () {
-        // Gentle meadow: soft pad + pentatonic birdsong plucks, 12s loop.
-        final drone = _padChord([130.81, 196.0, 261.63], 12.0);
-        final plucks = [
-          392.0, 440.0, 523.25, 587.33,
-          659.25, 587.33, 523.25, 440.0,
-          392.0, 523.25, 440.0, 392.0,
-        ];
-        final n = (_rate * 12).round();
-        final out = List<double>.from(drone);
-        for (int k = 0; k < plucks.length; k++) {
-          final start = (n * k / plucks.length).round();
-          final tone = _tone(plucks[k], 0.4, harmonics: 0.35);
-          for (int i = 0; i < tone.length && start + i < n; i++) {
-            out[start + i] += tone[i] * 0.3;
-          }
+        // A# arpeggiated 3 – 0 – 4 – 5, 16s loop. Unique to mergefarm.
+        final notes = [311.12, 391.99, 466.16, 391.99, 233.08, 293.66, 349.23, 293.66, 349.23, 440.00, 523.25, 440.00, 391.99, 466.16, 587.32, 466.16];
+        final out = <double>[];
+        final noteLen = 16.0 / notes.length;
+        for (final n in notes) {
+          out.addAll(_tone(n, noteLen * 0.9, harmonics: 0.3));
+          final gap = List<double>.filled((_rate * noteLen * 0.1).round(), 0);
+          out.addAll(gap);
+        }
+        // Soft pad underneath
+        final pad = _padChord([311.12, 391.99, 466.16], 16.0);
+        for (int i = 0; i < out.length && i < pad.length; i++) {
+          out[i] += pad[i] * 0.3;
         }
         return out;
       });
+
 
   // ------------------------------------------------------------------ SFX
   Future<void> _play(Uint8List bytes) async {
