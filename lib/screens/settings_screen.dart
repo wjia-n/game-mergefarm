@@ -4,6 +4,7 @@ import '../services/audio_service.dart';
 import '../services/settings_service.dart';
 import '../theme/farm_art.dart';
 import '../theme/farm_themes.dart';
+import '../transfer/transfer_ui.dart';
 
 /// Settings: audio toggles + volume, rename player + farm, reset farm,
 /// rate in the Play Store, how to play.
@@ -123,6 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+              TransferSaveTile(gameSlug: 'mergefarm'),
           WoodCard(
             theme: t,
             child: Column(
